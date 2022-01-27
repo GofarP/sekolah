@@ -9,8 +9,10 @@ use App\Models\Pengumuman;
 use App\Models\Agenda;
 use Image;
 use File;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Filesystem\Filesystem;
 
-use Illuminate\Support\Facades\URL;
+
 
 
 class HomeController extends Controller
@@ -72,27 +74,54 @@ class HomeController extends Controller
 
     public function testImage()
     {
-        // $getImage=Artikel::select('image')->take(1)->first();
+       
+        $oldImages=array();
+        $newImages=array();
 
-        // $processImage=$getImage->image;
-
-        // $makeImage=Image::make('storage/kategori-images/WfcDJUhqwAMgMzb0eEGUKXjCJWZ0oU.jpg')
-        // ->resize(2000,783)->response();
-
-        // // return view('guest.index.test',['img'=>$makeImage]);
-
-        // return $makeImage;
-
-        $files = File::files(public_path('storage/carousel-images'));
-        $filecount = 0;
+        $getLatestImage=Artikel::select('image')->orderBy('created_at','DESC')->take(3)->get();
+        $filesInFolder = File::files('storage/carousel-images'); 
         
-        if ($files !== false) {
-            $filecount = count($files);
+        //add old images to array
+        foreach($filesInFolder as $files) 
+        { 
+            array_push($oldImages,str_replace('storage/carousel-images\\','',$files));
+        }
+
+        //add new images name to array
+        foreach($getLatestImage as $image)
+        {
+            $thumbImage=Image::make('storage/'.$image->image)->resize(2000, 783);
+            $formatPath=str_replace('artikel-images/','',$image->image);
+
+            if(count($oldImages) <= 2)
+            {
+                $thumbPath = public_path('storage/carousel-images/'.$formatPath);
+                $thumbImage = Image::make($thumbImage)->save($thumbPath);
+
+            }
+            array_push($newImages,$formatPath);
+        }
+
+    
+        for ($i=0; $i < count($oldImages); $i++) 
+        { 
+            if(in_array($newImages[$i],$oldImages))
+            {
+                unset($newImages[$i]);
+            }
+
+            else
+            {
+                Storage::delete('carousel-images/'.$oldImages[$i]);
+
+                $newThumbnail=Image::make('storage/artikel-images/'.$newImages[$i])->resize(2000, 783);
+                $newFormatPath=str_replace('/storage/artikel-images/','',$newImages[$i]);
+
+                $newThumbPath = public_path('storage/carousel-images/'.$newFormatPath);
+                $newThumbnail = Image::make($newThumbnail)->save($newThumbPath);
+            }
         }
         
-        return $filecount;
-
-       
 
     }
 

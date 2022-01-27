@@ -40,7 +40,7 @@
 
                     <div class="carousel-item active">
                         <img class="d-block" 
-                            src="{{ asset('storage/artikel-images/' . 'anu.jpg') }}" alt="First slide" />
+                            src="{{ url('images/themes/slider.jpg') }}" alt="First slide" />
                         <div class="carousel-caption d-md-block">
                             <div class="slider_title">
                                 <h1>Bepikir Kreaftif &amp; Inovatif</h1>
